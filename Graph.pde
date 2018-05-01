@@ -1,20 +1,21 @@
-import java.util.Map;   //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>//
-import java.util.Set;//<>// //<>// //<>//
+import java.util.Map;   //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>//
+import java.util.Set;//<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>//
 import java.util.Iterator;
 
 class Graph {
-  
+
   private  HashMap<Node, ArrayList<Node>> graphADJ = new HashMap<Node, ArrayList<Node>>();
   private int nodeSize;
-  
-   Graph(Table table) {
+  private final int NODE_DISTANCE = 100;
+
+  Graph(Table table) {
     graphADJ = createAdjazencyList(table);
     nodeSize = graphADJ.entrySet().size();
     setGraphNodesCoordinates();
   }
-  
+
   /***************************************** QUESTIONS */
- boolean isHalf(int counter) {
+  boolean isHalf(int counter) {
     return counter > nodeSize/2;
   }
   boolean isEvenNodeSize() {
@@ -24,18 +25,39 @@ class Graph {
   boolean isEqual(Node parent, Node node) {
     return (parent.getX() == node.getX()) && (parent.getY() == node.getY());
   }
-  
+
+  boolean isOneUnderAnother(Node parent, Node node) {
+    return parent.getX() == node.getX();
+  }
+
+  boolean isOneNextToAnother(Node parent, Node node) {
+    return parent.getY() == node.getY();
+  }
+  boolean isOneDiagonalToAnother(Node parent, Node node) {
+    return parent.getX() == node.getX();
+  }
+  boolean isHorizontalNeighbour(Node parent, Node node) {
+    return isOneUnderAnother(parent, node) & (abs(parent.getY() - node.getY()) == NODE_DISTANCE);
+  }
+
+  boolean isVerticalNeighbour(Node parent, Node node) {
+    return isOneNextToAnother(parent, node) & (abs(parent.getX() - node.getX()) == NODE_DISTANCE);
+  }
+
+  boolean isDiagonalNeighbour(Node parent, Node node) {
+    return (abs(parent.getX() - node.getX()) == NODE_DISTANCE) & (abs(parent.getY() - node.getY()) == NODE_DISTANCE);
+  }
   /*+++++++++++++++++++++++++++++++++++++++ GET SET */
-  
+
   void setGraphNodesCoordinates() {
 
     int startNodeX = 100;
-    int startNodeY = 60;
+    int startNodeY = 100;
     int x = startNodeX;
     int y = startNodeY;
     int counter = 0;
     boolean firstNode = false;
-    
+
     if (!isEvenNodeSize()) {
       firstNode = true;
     }
@@ -47,39 +69,26 @@ class Graph {
         parent.setXY(startNodeX, startNodeY);
         drawNode(parent);
         firstNode = false;
-        y+=100;
+        y+=NODE_DISTANCE;
       } else {
         if (counter <= ceil(nodeSize/2.0)) {
           parent.setXY(x, y);
           drawNode( parent);
-          x+=100;
+          x+=NODE_DISTANCE;
         } else {
           parent.setXY(x, y);
           drawNode( parent);
-          x+=100;
+          x+=NODE_DISTANCE;
         }
       }
       if (counter == ceil(nodeSize/2.0)) {
         x = startNodeX;
-        y+=100;
-      }
-    }
-    
-   // setCoordinatesForNeighbours();
-    //checkCoordinatesForNeighbours();
-  }
-  
-    void setCoordinatesForNeighbours() {
-    for (Map.Entry me : graphADJ.entrySet()) {
-      ArrayList<Node> neighbours = ( ArrayList<Node>) me.getValue();
-      for (Node node : neighbours) {
-        Node parent = getParent(node.getValue());
-        node.setXY(parent.getX(), parent.getY());
+        y+=NODE_DISTANCE;
       }
     }
   }
-  
-    Node getParent(int atKey) {
+
+  Node getParent(int atKey) {
     Set<Node> keys = graphADJ.keySet();
     Iterator<Node> iterator = keys.iterator();
     while (iterator.hasNext()) {
@@ -90,28 +99,29 @@ class Graph {
     }
     return null;
   }
-  
-   HashMap<Node, ArrayList<Node>> getGraphADJ(){
-     return graphADJ;
+
+  HashMap<Node, ArrayList<Node>> getGraphADJ() {
+    return graphADJ;
   }
-  
-   Set<Node> getKeyNodes(){
-     return  graphADJ.keySet();
-   }
-   
-   Node getNodeFromParentList(ArrayList<Node> parents, int value){
-     for(Node node : parents){
-       if(node.getValue() == value){
-         return node;
-       }
-     }
-   return null;
-   }
-  
+
+  Set<Node> getKeyNodes() {
+    return  graphADJ.keySet();
+  }
+
+  Node getNodeFromParentList(ArrayList<Node> parents, int value) {
+    for (Node node : parents) {
+      if (node.getValue() == value) {
+        return node;
+      }
+    }
+    return null;
+  }
+
   /*++++++++++++++++++++++++++++++++++++++++ DRAWING */
-  
-  
+
+
   void drawNode(Node node) {
+    stroke(0);
     fill(node.getColor());
     ellipse(node.getX(), node.getY(), 55, 55);
     textSize(20);
@@ -119,72 +129,102 @@ class Graph {
     text(node.value, node.getX() -6, node.getY()+6);
   }
 
-void drawGraphNodes() {
-  for (Map.Entry me : graphADJ.entrySet()) {
-    Node parent = (Node) me.getKey();
-    drawNode( parent);
+  void drawGraphNodes() {
+    for (Map.Entry me : graphADJ.entrySet()) {
+      Node parent = (Node) me.getKey();
+      drawNode( parent);
+    }
   }
-}
-
 
   void drawGraphEdges() {
     for (Map.Entry me : this.graphADJ.entrySet()) {
       Node parent = (Node) me.getKey();
       ArrayList<Node> neighbours = ( ArrayList<Node>) me.getValue();
       for (Node node : neighbours) {
-        //zeichne kurve
-        fill(36,180,221);
-        if (!isEqual(parent, node)) {
-          if (parent.getX() == node.getX()) {
-            //dann stehen die untereinander
-            if (node.getY() - parent.getY() > 0) {
-              //vhild oben
-              ellipse(node.getX(), node.getY() - 28, 10, 10);
-            } else {
-              // child unten
-
-              ellipse(node.getX(), node.getY()  +30, 10, 10);
-            }
-          } else if (parent.getY() == node.getY()) {
-            //dann stehen die nebeneinander
-            if (node.getX() - parent.getX() > 0) {
-              //child rechts
-              ellipse(node.getX() - 31, node.getY(), 10, 10);
-            } else {
-              // child links
-              ellipse(node.getX() + 31, node.getY(), 10, 10);
-            }
-          } else {
-            //quer
-            if (node.getX() - parent.getX() > 0) {
-              //child rechts
-              if (node.getY() - parent.getY() < 0) {
-                //child rechts oben
-                ellipse(node.getX() - 22, node.getY() + 22, 10, 10);
-              } else {
-                //child reechts unten
-                ellipse(node.getX() - 22, node.getY() - 22, 10, 10);
-              }
-            } else {
-              // child links
-              if (node.getY() - parent.getY() > 0) {
-                //child links unten
-                ellipse(node.getX() + 22, node.getY()  - 22, 10, 10);
-              } else {
-                //child links oben
-                ellipse(node.getX() + 22, node.getY() + 22, 10, 10);
-              }
-            }
-          }
+        if (isHorizontalNeighbour(parent, node) | isVerticalNeighbour(parent, node) | isDiagonalNeighbour(parent, node)) { //stehen untereinander
+          drawArrow(parent.getX(), parent.getY(), 30, node.getX(), node.getY(), 30, 2.0 );
+        } else { 
+          drawArrow2(parent.getX(), parent.getY(), 30, node.getX(), node.getY(), 30, 2.0 );
         }
-        line(parent.getX(), parent.getY(), node.getX(), node.getY());
       }
     }
   }
 
-/**************************************************** OTHERS */
+  public void drawArrow(float cx0, float cy0, float rad0, float cx1, float cy1, float rad1, float thickness) {
+    // These will be the points on the circles circumference
+    float px0, py0, px1, py1;
+    // the angle of the line joining centre of circle c0 to c1
+    float angle = atan2(cy1-cy0, cx1-cx0);
+    px0 = cx0 + rad0 * cos(angle);
+    py0 = cy0 + rad0 * sin(angle);
+    px1 = cx1 + rad1 * cos(angle + PI);
+    py1 = cy1 + rad1 * sin(angle + PI);
+    // Calculate the arrow length and head size
+    float arrowLength = sqrt((px1-px0)*(px1-px0) +(py1-py0)*(py1-py0));
+    float arrowSize = 2.5 * 2.0;
+    // Setup arrow colours and thickness
+    strokeWeight(2.0);
+    stroke(0);
+    fill(0, 0, 0);
+    // Set the drawing matrix as if the arrow starts
+    // at the origin and is along the x-axis
+    pushMatrix();
+    translate(px0, py0);
+    rotate(angle);
+    // Draw the arrow shafte
+    line(0, 0, arrowLength, 0);
+    //  draw the arrowhead
+    beginShape(TRIANGLES);
+    vertex(arrowLength, 0); // point
+    vertex(arrowLength - arrowSize, -arrowSize);
+    vertex(arrowLength - arrowSize, arrowSize);
+    endShape();
+    popMatrix();
+  }
 
-void checkCoordinatesForNeighbours() {
+  public void drawArrow2(float cx0, float cy0, float rad0, float cx1, float cy1, float rad1, float thickness) {
+    // These will be the points on the circles circumference
+    float px0, py0, px1, py1;
+    // the angle of the line joining centre of circle c0 to c1
+    float angle = atan2(cy1-cy0, cx1-cx0);
+    px0 = cx0 + rad0 * cos(angle) ;
+    py0 = cy0 + rad0 * sin(angle) ;
+    px1 = cx1 + rad1 * cos(angle + PI) ;
+    py1 = cy1 + rad1 * sin(angle + PI) ;
+    // Calculate the arrow length and head size
+    float arrowLength = sqrt((px1-px0)*(px1-px0) +(py1-py0)*(py1-py0));
+    float arrowSize = 2.5 * 2.0;
+    // Setup arrow colours and thickness
+
+    // Set the drawing matrix as if the arrow starts
+    // at the origin and is along the x-axis
+    pushMatrix();
+    stroke(cx0, cx1, 155);
+    noFill();
+    beginShape();
+    curveVertex(620, 71);
+    curveVertex(px0, py0);
+    curveVertex(px1, py1);
+    curveVertex(214, 356);
+    endShape();
+
+    strokeWeight(1.0);
+    stroke(cx0, cx1, 155);
+    fill(cx0, cx1, 155);
+    translate(px0, py0);
+    rotate(angle);
+
+    beginShape(TRIANGLES);
+    vertex(arrowLength, 0); // point
+    vertex(arrowLength - arrowSize, -arrowSize);
+    vertex(arrowLength - arrowSize, arrowSize);
+    endShape();
+
+    popMatrix();
+  }
+  /**************************************************** OTHERS */
+
+  void checkCoordinatesForNeighbours() {
     for (Map.Entry me : graphADJ.entrySet()) {
       Node parent = (Node) me.getKey();
       println("parent" + parent.getValue() + " hat " + parent.getX());
@@ -194,16 +234,16 @@ void checkCoordinatesForNeighbours() {
       }
     }
   }
-  
+
   HashMap<Node, ArrayList<Node>> createAdjazencyList(Table table) {
     int columnsLength = table.getColumnCount();
-    
+
     ArrayList<Node> parents = new ArrayList<Node>();
     for (TableRow row : table.rows()) {
       Node node = new Node(row.getInt(0)); 
       parents.add(node);
     }
-    
+
     int counter=0;
     for (TableRow row : table.rows()) {
       ArrayList<Node> neighbourList = new ArrayList<Node>();
@@ -231,6 +271,4 @@ void checkCoordinatesForNeighbours() {
       }
     }
   }
-  
-  
 } //END CLASS

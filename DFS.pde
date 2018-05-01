@@ -13,7 +13,7 @@ class DFS {
 
   void DFS_VISIT(Node u) {
     u.setColor(u.GRAY_C);
-delay(100);
+    
     ArrayList<Node> neighbours = graph.getGraphADJ().get(u);
     for (Node v : neighbours) {
       if (v.getColor() == v.WHITE_C) {
@@ -29,8 +29,15 @@ delay(100);
 
     graph.drawGraphEdges();
     graph.drawGraphNodes();
+    gosleep();
 
   }
 
 
+void gosleep() {
+   int stoptime=millis()+1;
+    while(stoptime>millis()){
+    stoptime++;
+  }
+}
 }
