@@ -1,14 +1,15 @@
-import java.util.Map;   //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>//
-import java.util.Set;//<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>//
+import java.util.Map;    //<>// //<>//
+import java.util.Set; //<>// //<>//
 import java.util.Iterator;
 
 class Graph {
 
-  private  HashMap<Node, ArrayList<Node>> graphADJ = new HashMap<Node, ArrayList<Node>>();
-  private int nodeSize;
+  private HashMap<Node, ArrayList<Node>> graphADJ;
+  private int nodeSize; // amound of nodes in graph
   private final int NODE_DISTANCE = 100;
 
   Graph(Table table) {
+    graphADJ = new HashMap<Node, ArrayList<Node>>();
     graphADJ = createAdjazencyList(table);
     nodeSize = graphADJ.entrySet().size();
     setGraphNodesCoordinates();
@@ -21,15 +22,12 @@ class Graph {
   boolean isEvenNodeSize() {
     return nodeSize%2 == 0;
   }
-
   boolean isEqual(Node parent, Node node) {
     return (parent.getX() == node.getX()) && (parent.getY() == node.getY());
   }
-
   boolean isOneUnderAnother(Node parent, Node node) {
     return parent.getX() == node.getX();
   }
-
   boolean isOneNextToAnother(Node parent, Node node) {
     return parent.getY() == node.getY();
   }
@@ -39,18 +37,20 @@ class Graph {
   boolean isHorizontalNeighbour(Node parent, Node node) {
     return isOneUnderAnother(parent, node) & (abs(parent.getY() - node.getY()) == NODE_DISTANCE);
   }
-
   boolean isVerticalNeighbour(Node parent, Node node) {
     return isOneNextToAnother(parent, node) & (abs(parent.getX() - node.getX()) == NODE_DISTANCE);
   }
-
   boolean isDiagonalNeighbour(Node parent, Node node) {
     return (abs(parent.getX() - node.getX()) == NODE_DISTANCE) & (abs(parent.getY() - node.getY()) == NODE_DISTANCE);
   }
+  boolean isValid(Node node){
+    return node!=null;
+  }
+  
   /*+++++++++++++++++++++++++++++++++++++++ GET SET */
-
+  
+  /** Sets to frame coordinates from every node from the graph */
   void setGraphNodesCoordinates() {
-
     int startNodeX = 100;
     int startNodeY = 100;
     int x = startNodeX;
@@ -87,7 +87,8 @@ class Graph {
       }
     }
   }
-
+  
+  // Returns the node with the sepcific key value
   Node getParent(int atKey) {
     Set<Node> keys = graphADJ.keySet();
     Iterator<Node> iterator = keys.iterator();
@@ -99,15 +100,18 @@ class Graph {
     }
     return null;
   }
-
+ 
+  // Returns adjacenzy list
   HashMap<Node, ArrayList<Node>> getGraphADJ() {
     return graphADJ;
   }
-
+  
+  // Returns all nodes from graph
   Set<Node> getKeyNodes() {
     return  graphADJ.keySet();
   }
 
+  // Returns a specific node from the parent list (all nodes)
   Node getNodeFromParentList(ArrayList<Node> parents, int value) {
     for (Node node : parents) {
       if (node.getValue() == value) {
@@ -118,8 +122,6 @@ class Graph {
   }
 
   /*++++++++++++++++++++++++++++++++++++++++ DRAWING */
-
-
   void drawNode(Node node) {
     stroke(0);
     fill(node.getColor());
@@ -150,6 +152,7 @@ class Graph {
     }
   }
 
+/* COPY PASTE CODE ! https://forum.processing.org/one/topic/drawing-an-arrow-from-the-edge-of-a-circle-to-another-circle-s-edge.html*/
   public void drawArrow(float cx0, float cy0, float rad0, float cx1, float cy1, float rad1, float thickness) {
     // These will be the points on the circles circumference
     float px0, py0, px1, py1;
@@ -182,6 +185,7 @@ class Graph {
     popMatrix();
   }
 
+/* COPY PASTE CODE ! https://forum.processing.org/one/topic/drawing-an-arrow-from-the-edge-of-a-circle-to-another-circle-s-edge.html*/
   public void drawArrow2(float cx0, float cy0, float rad0, float cx1, float cy1, float rad1, float thickness) {
     // These will be the points on the circles circumference
     float px0, py0, px1, py1;
@@ -209,7 +213,7 @@ class Graph {
     endShape();
 
     strokeWeight(1.0);
-    stroke(cx0, cx1, 155);
+    stroke(cx0, cx1, 1);
     fill(cx0, cx1, 155);
     translate(px0, py0);
     rotate(angle);
@@ -219,25 +223,13 @@ class Graph {
     vertex(arrowLength - arrowSize, -arrowSize);
     vertex(arrowLength - arrowSize, arrowSize);
     endShape();
-
     popMatrix();
   }
   /**************************************************** OTHERS */
-
-  void checkCoordinatesForNeighbours() {
-    for (Map.Entry me : graphADJ.entrySet()) {
-      Node parent = (Node) me.getKey();
-      println("parent" + parent.getValue() + " hat " + parent.getX());
-      ArrayList<Node> neighbours = ( ArrayList<Node>) me.getValue();
-      for (Node node : neighbours) {
-        println("kind " + node.getValue() + " hat " + node.getX());
-      }
-    }
-  }
-
+  // Creates the adjazency list from the csv file
   HashMap<Node, ArrayList<Node>> createAdjazencyList(Table table) {
+    
     int columnsLength = table.getColumnCount();
-
     ArrayList<Node> parents = new ArrayList<Node>();
     for (TableRow row : table.rows()) {
       Node node = new Node(row.getInt(0)); 
@@ -256,19 +248,6 @@ class Graph {
       graphADJ.put(parents.get(counter), neighbourList);
       counter++;
     }
-    printGraph();
     return this.graphADJ;
-  }
-
-  void printGraph() {
-    for (Map.Entry me : graphADJ.entrySet()) {
-      Node parent = (Node) me.getKey();
-      ArrayList<Node> neighbours = ( ArrayList<Node>) me.getValue();
-      println();
-      print("Parent " + parent.getValue() + "->");
-      for (Node node : neighbours) {
-        print(" Child " + node.getValue());
-      }
-    }
   }
 } //END CLASS

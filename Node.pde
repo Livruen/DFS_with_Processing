@@ -6,12 +6,10 @@ class Node {
   private int nodeColor;
   private int x;
   private int y;
-  private int pi;
   
   Node (int value) {  
     this.value=value;
     this.nodeColor = WHITE_C;
-    this.pi = 0;
   } 
   
   int getValue(){
@@ -39,22 +37,10 @@ class Node {
     return this.y;
   }
   
-  void setPi(int pi){
-    this.pi = pi;
+  boolean isWhite(){
+    return this.getColor() == WHITE_C;
   }
-  
-   int getPi(){
-    return pi;
+  boolean isGray(){
+    return this.getColor() == GRAY_C;
   }
-  //String colorToString(){
-  //  switch(this.nodeColor) {
-  //    case 255:
-  //    return "white";
-  //    case 155:
-  //    return "gray";
-  //    case 0: 
-  //    return "black";
-  //  }
-  //  return null;
-  //}
 } 

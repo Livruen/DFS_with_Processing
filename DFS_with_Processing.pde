@@ -1,47 +1,46 @@
-//<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>// //<>//
-import java.util.ArrayDeque;
+import java.util.ArrayDeque; //<>//
 
-Graph graph;
-DFS dfs;
-Node u;
-ArrayDeque<Node> queue;
-ArrayDeque<Node> removed;
-ArrayList<Node> pi;
-ArrayDeque<Integer> number = new ArrayDeque<Integer>();                      
-PFont font;
-int input = 0;
-boolean start = false;
+// Global variables
+private Graph graph;               // Graph class
+private Node u;                    // Current node
+private ArrayDeque<Node> queue;    // queue for DFS
+private ArrayDeque<Node> removed;  // list with nodes which are not considered in DFS
+private Node[] pi;                 // Neighbours list
 
-void setup() {  // setup() runs once
-  size(700, 500);
-  background(255);
-  frameRate(1);
+private ArrayDeque<Integer> inputNumbers = new ArrayDeque<Integer>();  // user sets the start node                  
+private PFont font;
+private int input = 0;  // users input for start node
+private boolean start = false; // if there is no input from the user for the start node then start = false else true
 
-  graph = new Graph(loadGraph());
-  dfs = new DFS();
+void setup() { 
+  size(900, 800);  // window size
+  background(255); // backgroud color
+  frameRate(1);    // frame rate for DFS, change here to make it faster
 
-  graph.drawGraphEdges();
-  graph.drawGraphNodes();
   queue = new ArrayDeque<Node>();
   removed = new ArrayDeque<Node>();
-
-  //Entering start node
+  
+  graph = new Graph(loadGraph()); // Parse csv to graph
+  graph.drawGraphEdges();
+  graph.drawGraphNodes();
+  
+  // The font for start node text
   font = createFont("Arial", 22);
   textFont(font);
-
 }
 
-void draw() {
+void draw() { // endless loop
   background(255);
   graph.drawGraphEdges();
   graph.drawGraphNodes();
-   if(!start){
-    if (input==0) {
-       text("Start node: " , 4, 29);
+
+  if (!start) {  // if there is no input from the user for the start node then start = false else true
+    if (input==0) {  // if there is no input from the user for the start node 
+      text("Start node: press start node number on the keyboard", 4, 29);
     } else {
       int decimal = 1;
       input = 0;
-      for (int i : number) {
+      for (int i : inputNumbers) {
         print(i);
         input = (i * decimal) + input;
         decimal*=10;
@@ -49,9 +48,13 @@ void draw() {
       text("Start node: " + input, 4, 29);
     }
   } else {
-    if (! (queue.size() == 0)) {
-      ArrayList<Node> neighbours = graph.getGraphADJ().get(u);
-      if (neighbours.isEmpty() & (u.getColor() == u.GRAY_C)) {
+    if (! (queue.size() == 0)) { // if there are some nodes to search for DFS
+    
+      // get the neighbours from current node u
+      ArrayList<Node> neighbours = graph.getGraphADJ().get(u); 
+      
+      if (neighbours.isEmpty() & u.isGray()) { // if u is Gray or has no neighbours
+        // then it will be black, taken away from the queue list and added to removed list
         u.setColor(u.BLACK_C);
         removed.addFirst(u);
         queue.removeFirst();
@@ -59,49 +62,53 @@ void draw() {
       } else {
         u.setColor(u.GRAY_C);
         int neighbourSize = neighbours.size();
-        int grayNeighbour = 0;
+        int coloredNeighbours = 0;
+        
         for (Node v : neighbours) {
-          if (v.getColor() == v.WHITE_C) {
-            v.setPi(u.getValue());
-            v.setColor(u.GRAY_C);
-            queue.addFirst(v);
+          if (v.isWhite()) { // take the white neighbour v from u
+            pi[v.getValue()-1] = u; // update the neighbour list
+            v.setColor(u.GRAY_C);   // make him gray
+            // v is now the current node
+            queue.addFirst(v);      
             u=v;
             break;
-          } else if ((v.getColor() == v.GRAY_C) | (v.getColor() == v.BLACK_C)) {
-            grayNeighbour++;
+          } else if (!v.isWhite()) {
+            coloredNeighbours++;
           }
-          if (neighbourSize == grayNeighbour) {
+          if (neighbourSize == coloredNeighbours) {
+            // if all neighbours of u are colored then make him black
             u.setColor(u.BLACK_C);
             removed.addFirst(u);
             queue.removeFirst();
-            if (!queue.isEmpty()) {
+            if (!queue.isEmpty()) { // if there are still nodes in the queue take the next one
               u = queue.getFirst();
             }
           }
           graph.drawGraphEdges();
           graph.drawGraphNodes();
-        }
+          printPI(pi);
+        }    
       }
-    }
-    println("---- PI -----");
-    for (Node node : graph.getKeyNodes()) {
-      println(node.getValue() + " -> " + node.getPi() );
     }
   }
 }
 
-void keyPressed() {
+
+void keyPressed() { // listening to keyboard
   int keyNum = Character.getNumericValue(key);
   if (keyNum<=9 && keyNum>0) {
     input = keyNum;
-    number.addFirst(input);
+    inputNumbers.addFirst(input); // save all the input numbers from user
   } else if (key == BACKSPACE) {
-    number.removeFirst();
-  } else if(key == ENTER){
-    start = true;
+    inputNumbers.removeFirst();
+  } else if (key == ENTER) {
     Node startNode = graph.getParent(input);
-    queue.addFirst(startNode);
-    u = startNode; 
+    if (graph.isValid(startNode)) { 
+      start = true;
+      queue.addFirst(startNode);
+      u = startNode; 
+      pi = new Node[graph.getKeyNodes().size()];
+    }
   }
 } 
 
@@ -109,3 +116,14 @@ Table loadGraph() {
   Table table = loadTable("data/graph.csv", "csv");
   return table;
 }
+
+  void printPI(Node[] pi) {
+    println("------ PI ------");
+    for (int i = 0; i < pi.length; i++) {
+      if (pi[i] == null) {
+        println("Node" + (i+1) + " PI = / ");
+      } else {
+        println("Node" + (i+1) + " PI = " + pi[i].getValue());
+      }
+    }
+  }
